@@ -1,7 +1,10 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using FluentValidation;
 
+using Microsoft.AspNetCore.Mvc;
+
+using PaymentGateway.Api.Interfaces;
+using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
-using PaymentGateway.Api.Services;
 
 namespace PaymentGateway.Api.Controllers;
 
@@ -9,18 +12,46 @@ namespace PaymentGateway.Api.Controllers;
 [ApiController]
 public class PaymentsController : Controller
 {
-    private readonly PaymentsRepository _paymentsRepository;
+    private readonly IPaymentsRepository _paymentsRepository;
+    private readonly IValidator<PostPaymentRequest> _postPaymentRequestValidator;
 
-    public PaymentsController(PaymentsRepository paymentsRepository)
+    public PaymentsController(IPaymentsRepository paymentsRepository, IValidator<PostPaymentRequest> postPaymentRequestValidator)
     {
-        _paymentsRepository = paymentsRepository;
+        this._paymentsRepository = paymentsRepository;
+        this._postPaymentRequestValidator = postPaymentRequestValidator;
     }
 
     [HttpGet("{id:guid}")]
-    public async Task<ActionResult<PostPaymentResponse?>> GetPaymentAsync(Guid id)
+    [ProducesResponseType(typeof(GetPaymentResponse), StatusCodes.Status200OK)]
+    [ProducesResponseType(typeof(GetPaymentResponse), StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(typeof(GetPaymentResponse), StatusCodes.Status401Unauthorized)]
+    [ProducesResponseType(typeof(GetPaymentResponse), StatusCodes.Status404NotFound)]
+    public ActionResult<GetPaymentResponse?> GetPaymentAsync(Guid id)
     {
         var payment = _paymentsRepository.Get(id);
 
+        if (payment is null)
+        {
+            return NotFound();
+        }
+        
         return new OkObjectResult(payment);
+    }
+    
+    [HttpPost]
+    public async Task<ActionResult<PostPaymentResponse?>> PostPaymentsAsync([FromBody] PostPaymentRequest paymentRequest)
+    {
+        try
+        {
+            var payment = await _paymentsRepository.Add(paymentRequest);
+            return new OkObjectResult(payment);
+        }
+        catch (Exception ex)
+        {
+            return BadRequest(ex.Message);
+        }
+        
+
+        
     }
 }

@@ -17,7 +17,7 @@ public class PaymentsControllerTests
     public async Task RetrievesAPaymentSuccessfully()
     {
         // Arrange
-        var payment = new PostPaymentResponse
+        var payment = new PostPaymentResponse()
         {
             Id = Guid.NewGuid(),
             ExpiryYear = _random.Next(2023, 2030),

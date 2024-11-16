@@ -1,18 +1,36 @@
-﻿using PaymentGateway.Api.Models.Responses;
+﻿using System.Collections.Concurrent;
+
+using PaymentGateway.Api.Interfaces;
+using PaymentGateway.Api.Models;
+using PaymentGateway.Api.Models.Requests;
+using PaymentGateway.Api.Models.Responses;
 
 namespace PaymentGateway.Api.Services;
 
-public class PaymentsRepository
+public class PaymentsRepository : IPaymentsRepository
 {
-    public List<PostPaymentResponse> Payments = new();
+    private static readonly ConcurrentDictionary<Guid, PostPaymentResponse> _payments = new();
     
-    public void Add(PostPaymentResponse payment)
+    public async Task<PostPaymentResponse> Add(PostPaymentRequest payment)
     {
-        Payments.Add(payment);
+        /*
+         _payments.Add(new PostPaymentResponse
+        {
+            Id = new Guid(),
+            Status = ResponseExtensions.Status ? PaymentStatus.Authorized : PaymentStatus.Declined,
+            CardNumberLastFour = payment.CardNumber
+            
+        });
+        */
+        
+        // Do mapping from PostPaymentRequest to PostPAymentResponse
+        
+        //Payments.Add(payment);
     }
 
-    public PostPaymentResponse Get(Guid id)
+    public PostPaymentResponse? Get(Guid id)
     {
-        return Payments.FirstOrDefault(p => p.Id == id);
+        // Returns null if no payment found with matching ID
+        return _payments.TryGetValue(id, out var payment) ? payment : null;
     }
 }
