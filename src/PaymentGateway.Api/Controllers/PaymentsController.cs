@@ -1,7 +1,7 @@
-﻿using FluentValidation;
+﻿using Microsoft.AspNetCore.Mvc;
 
-using Microsoft.AspNetCore.Mvc;
-
+using PaymentGateway.Api.Enums;
+using PaymentGateway.Api.Errors;
 using PaymentGateway.Api.Interfaces;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
@@ -13,45 +13,69 @@ namespace PaymentGateway.Api.Controllers;
 public class PaymentsController : Controller
 {
     private readonly IPaymentsRepository _paymentsRepository;
-    private readonly IValidator<PostPaymentRequest> _postPaymentRequestValidator;
 
-    public PaymentsController(IPaymentsRepository paymentsRepository, IValidator<PostPaymentRequest> postPaymentRequestValidator)
+    public PaymentsController(IPaymentsRepository paymentsRepository)
     {
         this._paymentsRepository = paymentsRepository;
-        this._postPaymentRequestValidator = postPaymentRequestValidator;
     }
 
-    [HttpGet("{id:guid}")]
-    [ProducesResponseType(typeof(GetPaymentResponse), StatusCodes.Status200OK)]
-    [ProducesResponseType(typeof(GetPaymentResponse), StatusCodes.Status400BadRequest)]
-    [ProducesResponseType(typeof(GetPaymentResponse), StatusCodes.Status401Unauthorized)]
-    [ProducesResponseType(typeof(GetPaymentResponse), StatusCodes.Status404NotFound)]
-    public ActionResult<GetPaymentResponse?> GetPaymentAsync(Guid id)
-    {
-        var payment = _paymentsRepository.Get(id);
-
-        if (payment is null)
-        {
-            return NotFound();
-        }
-        
-        return new OkObjectResult(payment);
-    }
-    
-    [HttpPost]
-    public async Task<ActionResult<PostPaymentResponse?>> PostPaymentsAsync([FromBody] PostPaymentRequest paymentRequest)
+    [HttpGet("{id:guid}", Name ="GetPaymentById")]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status404NotFound)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public ActionResult<PaymentResponse?> GetPaymentAsync(Guid id)
     {
         try
         {
-            var payment = await _paymentsRepository.Add(paymentRequest);
+            var payment = _paymentsRepository.Get(id);
+
+            if (payment == null)
+            {
+                return this.NotFound(new CustomHttpError(
+                    "NOT_FOUND",
+                    "A payment with this id could not be found."));
+            }
+
             return new OkObjectResult(payment);
         }
         catch (Exception ex)
         {
-            return BadRequest(ex.Message);
+            // do some logging on what the exception was
+            return StatusCode(StatusCodes.Status500InternalServerError);
         }
-        
+    }
+    
+    [HttpPost]
+    [ProducesResponseType(StatusCodes.Status200OK)]
+    [ProducesResponseType(StatusCodes.Status201Created)]
+    [ProducesResponseType(StatusCodes.Status400BadRequest)]
+    [ProducesResponseType(StatusCodes.Status500InternalServerError)]
+    public async Task<ActionResult<PaymentResponse>> PostPaymentsAsync([FromBody] PostPaymentRequest paymentRequest)
+    {
+        try
+        {
+            var payment = await _paymentsRepository.Add(paymentRequest);
 
-        
+            // Payment was not processed by the acquiring bank
+            if (payment == null)
+            {
+                return this.BadRequest(new CustomHttpError(
+                    "REJECTED", 
+                    "The payment was rejected by the acquiring bank")
+                );
+            }
+
+            if (payment.Status == PaymentStatus.Authorized)
+            {
+                return this.CreatedAtRoute("GetPaymentById", new { id = payment.Id }, payment);
+            }
+
+            return this.Ok(payment);
+        }
+        catch (Exception ex)
+        {
+            // do some logging on what the exception was
+            return StatusCode(StatusCodes.Status500InternalServerError);
+        }
     }
 }

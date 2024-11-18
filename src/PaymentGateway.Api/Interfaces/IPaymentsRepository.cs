@@ -5,6 +5,6 @@ namespace PaymentGateway.Api.Interfaces;
 
 public interface IPaymentsRepository
 {
-    Task<PostPaymentResponse> Add(PostPaymentRequest payment);
-    PostPaymentResponse? Get(Guid id);
+    Task<PaymentResponse?> Add(PostPaymentRequest payment);
+    PaymentResponse? Get(Guid id);
 }

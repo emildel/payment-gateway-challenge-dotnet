@@ -1,7 +1,6 @@
-﻿using System.Collections.Concurrent;
-
+﻿using PaymentGateway.Api.Enums;
+using PaymentGateway.Api.HttpClient.BankSimulator;
 using PaymentGateway.Api.Interfaces;
-using PaymentGateway.Api.Models;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
 
@@ -9,28 +8,53 @@ namespace PaymentGateway.Api.Services;
 
 public class PaymentsRepository : IPaymentsRepository
 {
-    private static readonly ConcurrentDictionary<Guid, PostPaymentResponse> _payments = new();
+    private readonly Dictionary<Guid, PaymentResponse> _payments;
     
-    public async Task<PostPaymentResponse> Add(PostPaymentRequest payment)
+    private readonly IBankSimulatorClient _bankSimulatorClient;
+
+    public PaymentsRepository(IBankSimulatorClient bankSimulatorClient, Dictionary<Guid, PaymentResponse> paymentsDict)
     {
-        /*
-         _payments.Add(new PostPaymentResponse
+        this._bankSimulatorClient = bankSimulatorClient;
+        this._payments = paymentsDict;
+    }
+    
+    public async Task<PaymentResponse?> Add(PostPaymentRequest payment)
+    {
+        var bankSimulatorResponse = await _bankSimulatorClient.PostPayment(payment);
+
+        // If the call to the acquiring bank was not successful, eg. malformed request
+        if (!bankSimulatorResponse.IsSuccess)
         {
-            Id = new Guid(),
-            Status = ResponseExtensions.Status ? PaymentStatus.Authorized : PaymentStatus.Declined,
-            CardNumberLastFour = payment.CardNumber
-            
-        });
-        */
+            return null;
+        }
+
+        PaymentResponse processedPayment = new()
+        {
+            Id = Guid.NewGuid(),
+            CardNumberLastFour = int.Parse(payment.CardNumber[^4..]),
+            ExpiryMonth = payment.ExpiryMonth,
+            ExpiryYear = payment.ExpiryYear,
+            Currency = payment.Currency,
+            Amount = payment.Amount
+        };
         
-        // Do mapping from PostPaymentRequest to PostPAymentResponse
+        // If the acquiring bank returned a 200, we know the request was valid.
+        // Therefore, status can be either authorized or unauthorized
+        if (bankSimulatorResponse.SuccessResponse != null)
+        {
+            processedPayment.Status = bankSimulatorResponse.SuccessResponse.Authorized
+                ? PaymentStatus.Authorized
+                : PaymentStatus.Declined;
+        }
         
-        //Payments.Add(payment);
+        _payments.Add(processedPayment.Id, processedPayment);
+
+        return processedPayment;
     }
 
-    public PostPaymentResponse? Get(Guid id)
+    public PaymentResponse? Get(Guid id)
     {
         // Returns null if no payment found with matching ID
-        return _payments.TryGetValue(id, out var payment) ? payment : null;
+        return _payments.GetValueOrDefault(id);
     }
 }

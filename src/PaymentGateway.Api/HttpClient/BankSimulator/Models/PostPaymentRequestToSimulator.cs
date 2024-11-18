@@ -1,6 +1,6 @@
 using System.Text.Json.Serialization;
 
-namespace PaymentGateway.Api.HttpClient.ClientModels;
+namespace PaymentGateway.Api.HttpClient.BankSimulator.Models;
 
 public class PostPaymentRequestToSimulator
 {
@@ -17,5 +17,5 @@ public class PostPaymentRequestToSimulator
     public int Amount { get; set; }
     
     [JsonPropertyName("cvv")]
-    public string Cvv { get; set; }
+    public int Cvv { get; set; }
 }

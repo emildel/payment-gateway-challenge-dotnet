@@ -20,7 +20,7 @@ public class PostPaymentRequestValidator : AbstractValidator<PostPaymentRequest>
         RuleFor(r => r.ExpiryYear)
             .NotEmpty().WithMessage("Expiry year cannot be empty")
             .Must(BeValidYear).WithMessage("Expiry year cannot be in the past");
-        
+
         RuleFor(r => new { r.ExpiryMonth, r.ExpiryYear })
             .Must(expiry => !IsExpired(expiry.ExpiryMonth, expiry.ExpiryYear))
             .WithMessage("Card cannot be expired");
@@ -28,7 +28,7 @@ public class PostPaymentRequestValidator : AbstractValidator<PostPaymentRequest>
         RuleFor(r => r.Currency)
             .NotEmpty().WithMessage("Currency cannot be empty")
             .Length(3).WithMessage("Currency must be length of 3 characters")
-            .Must(BeAValidCurrency).WithMessage("Currency must be a valid currency");
+            .Must(BeAValidCurrency).WithMessage("Currency is not supported");
 
         RuleFor(r => r.Amount)
             .NotEmpty().WithMessage("Amount cannot be empty")
@@ -36,7 +36,7 @@ public class PostPaymentRequestValidator : AbstractValidator<PostPaymentRequest>
 
         RuleFor(r => r.Cvv)
             .NotEmpty().WithMessage("CVV cannot be empty")
-            .Must(cvv => cvv.All(char.IsDigit)).WithMessage("CVV can only contain digits")
+            .Must(cvv => int.TryParse(cvv, out _)).WithMessage("CVV can only contain digits")
             .Length(3, 4).WithMessage("CVV must be between 3 and 4 digits");
     }
 
@@ -44,11 +44,15 @@ public class PostPaymentRequestValidator : AbstractValidator<PostPaymentRequest>
     {
         // Validates that card year is not in the past
         // Could add a check for a limit in the future, eg. 10 year limit in the future
-        return DateTime.Now.Year >= year;
+        return DateTime.Now.Year <= year;
     }
     
     private bool IsExpired(int expiryMonth, int expiryYear)
     {
+        if (expiryMonth < 1 || expiryMonth > 12)
+        {
+            return false;
+        }
         var cardExpiry = new DateTime(expiryYear, expiryMonth, 1).AddMonths(1).AddDays(-1);
         return cardExpiry < DateTime.Now;
     }
