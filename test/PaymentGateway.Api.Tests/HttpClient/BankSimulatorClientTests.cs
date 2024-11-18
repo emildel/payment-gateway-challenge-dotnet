@@ -4,12 +4,11 @@ using System.Text.Json;
 using Moq;
 using Moq.Protected;
 
-using PaymentGateway.Api.Enums;
 using PaymentGateway.Api.HttpClient.BankSimulator;
 using PaymentGateway.Api.HttpClient.BankSimulator.Models;
 using PaymentGateway.Api.Models.Requests;
 
-namespace PaymentGateway.Api.Tests;
+namespace PaymentGateway.Api.Tests.HttpClient;
 
 public class BankSimulatorClientTests
 {

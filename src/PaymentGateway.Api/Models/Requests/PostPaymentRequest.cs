@@ -5,16 +5,16 @@ namespace PaymentGateway.Api.Models.Requests;
 public class PostPaymentRequest
 {
     [JsonPropertyName("card_number")]
-    public string CardNumber { get; set; }
+    public required string CardNumber { get; set; }
     
     [JsonPropertyName("expiry_month")]
-    public int ExpiryMonth { get; set; }
+    public required int ExpiryMonth { get; set; }
     
     [JsonPropertyName("expiry_year")]
     public int ExpiryYear { get; set; }
     
     [JsonPropertyName("currency")]
-    public string Currency { get; set; }
+    public required string Currency { get; set; }
     
     [JsonPropertyName("amount")]
     public int Amount { get; set; }

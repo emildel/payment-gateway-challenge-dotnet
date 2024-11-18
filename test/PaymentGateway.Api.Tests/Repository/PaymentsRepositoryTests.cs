@@ -1,5 +1,3 @@
-using System.Reflection;
-
 using Moq;
 
 using PaymentGateway.Api.Enums;
@@ -9,7 +7,7 @@ using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.Services;
 
-namespace PaymentGateway.Api.Tests;
+namespace PaymentGateway.Api.Tests.Repository;
 
 public class PaymentsRepositoryTests
 {

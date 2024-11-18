@@ -9,7 +9,7 @@ using PaymentGateway.Api.Interfaces;
 using PaymentGateway.Api.Models.Requests;
 using PaymentGateway.Api.Models.Responses;
 
-namespace PaymentGateway.Api.Tests;
+namespace PaymentGateway.Api.Tests.Controllers;
 
 public class PaymentsControllerTests
 {
