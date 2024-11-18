@@ -7,11 +7,10 @@ using FluentValidation.Results;
 
 using Microsoft.AspNetCore.Mvc;
 
-using PaymentGateway.Api.HttpClient;
 using PaymentGateway.Api.HttpClient.BankSimulator;
 using PaymentGateway.Api.Interfaces;
 using PaymentGateway.Api.Middleware;
-using PaymentGateway.Api.Models.Requests;
+using PaymentGateway.Api.Models.Responses;
 using PaymentGateway.Api.Services;
 using PaymentGateway.Api.Validators;
 
@@ -34,9 +33,13 @@ if (bankSimulatorUrl is null)
     throw new Exception("Bank Simulator URL is missing from configuration");
 }
 
-builder.Services.AddHttpClient(nameof(BankSimulatorClient), c =>
-    c.BaseAddress = new Uri(bankSimulatorUrl));
+builder.Services.AddHttpClient(nameof(BankSimulatorClient),c =>
+{
+    c.BaseAddress = new Uri(bankSimulatorUrl);
+    c.Timeout = TimeSpan.FromSeconds(10);
+});
 
+builder.Services.AddSingleton(new Dictionary<Guid, PaymentResponse>());
 builder.Services.AddSingleton<IPaymentsRepository, PaymentsRepository>();
 builder.Services.AddSingleton<IBankSimulatorClient, BankSimulatorClient>();
 

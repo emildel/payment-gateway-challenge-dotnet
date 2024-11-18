@@ -24,7 +24,7 @@ public class PaymentsControllerTests
     }
     
     [Fact]
-    public void Returns200IfPaymentIsFound()
+    public void Returns200IfPaymentIsFoundWhenCallingGetPayment()
     {
         // Arrange
         var paymentId = Guid.NewGuid();
@@ -59,7 +59,7 @@ public class PaymentsControllerTests
     }
 
     [Fact]
-    public void Returns404IfPaymentNotFound()
+    public void Returns404IfPaymentNotFoundWhenCallingGetPayment()
     {
         // Arrange
         var paymentId = Guid.NewGuid();
@@ -76,7 +76,7 @@ public class PaymentsControllerTests
     }
     
     [Fact]
-    public void Returns500IfExceptionIsThrown()
+    public void Returns500IfExceptionIsThrownWhenCallingGetPayment()
     {
         // Arrange
         var paymentId = Guid.NewGuid();
@@ -93,7 +93,7 @@ public class PaymentsControllerTests
     }
     
     [Fact]
-    public async Task Returns201IfPaymentIsProcessed()
+    public async Task Returns201IfPaymentIsProcessedWhenCallingPostPayment()
     {
         // Arrange
         var paymentRequest = new PostPaymentRequest
@@ -125,39 +125,7 @@ public class PaymentsControllerTests
     }
     
     [Fact]
-    public async Task Returns200IfPaymentWasSentToAcquiringBankButWasDeclined()
-    {
-        // Arrange
-        var paymentRequest = new PostPaymentRequest
-        {
-            CardNumber = "2222405343248112",
-            ExpiryMonth = 5,
-            ExpiryYear = 2026,
-            Currency = "USD",
-            Amount = 500,
-            Cvv = "1234"
-        };
-
-        var authorizedPayment = new PaymentResponse
-        {
-            Id = Guid.NewGuid(), Status = PaymentStatus.Declined, CardNumberLastFour = 8112, Amount = 500
-        };
-
-        _mockPaymentsRepository.Setup(s => s.Add(It.IsAny<PostPaymentRequest>()))
-            .ReturnsAsync(authorizedPayment);
-        
-        // Act
-        var response = await _controller.PostPaymentsAsync(paymentRequest);
-        var createdResult = response.Result as OkObjectResult;
-        
-        // Assert
-        Assert.NotNull(response);
-        Assert.NotNull(createdResult);
-        Assert.Equal(StatusCodes.Status200OK, createdResult.StatusCode);
-    }
-    
-    [Fact]
-    public async Task Returns400IfAcquiringBankRejectedPayment()
+    public async Task Returns400IfAcquiringBankRejectedPaymentWhenCallingPostPayment()
     {
         // Arrange
         var paymentRequest = new PostPaymentRequest
@@ -184,7 +152,7 @@ public class PaymentsControllerTests
     }
     
     [Fact]
-    public async Task Returns500IfExceptionOccursDuringPaymentProcessing()
+    public async Task Returns500IfExceptionOccursDuringPaymentProcessingWhenCallingPostPayment()
     {
         // Arrange
         var paymentRequest = new PostPaymentRequest

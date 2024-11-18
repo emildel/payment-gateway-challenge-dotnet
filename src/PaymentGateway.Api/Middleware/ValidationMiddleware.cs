@@ -20,11 +20,9 @@ public class ValidationMiddleware
         catch (ValidationException ex)
         {
             context.Response.StatusCode = 400;
-            context.Response.ContentType = "application/json";
-
+            
             var response = new
             {
-                Status = 400,
                 Errors = ex.Errors.GroupBy(e => e.PropertyName)
                     .ToDictionary(
                         g => g.Key,

@@ -46,7 +46,6 @@ public class PaymentsController : Controller
     }
     
     [HttpPost]
-    [ProducesResponseType(StatusCodes.Status200OK)]
     [ProducesResponseType(StatusCodes.Status201Created)]
     [ProducesResponseType(StatusCodes.Status400BadRequest)]
     [ProducesResponseType(StatusCodes.Status500InternalServerError)]
@@ -64,13 +63,8 @@ public class PaymentsController : Controller
                     "The payment was rejected by the acquiring bank")
                 );
             }
-
-            if (payment.Status == PaymentStatus.Authorized)
-            {
-                return this.CreatedAtRoute("GetPaymentById", new { id = payment.Id }, payment);
-            }
-
-            return this.Ok(payment);
+            
+            return this.CreatedAtRoute("GetPaymentById", new { id = payment.Id }, payment);
         }
         catch (Exception ex)
         {
