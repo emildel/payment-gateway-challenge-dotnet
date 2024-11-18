@@ -8,7 +8,7 @@ public class PostPaymentRequest
     public required string CardNumber { get; set; }
     
     [JsonPropertyName("expiry_month")]
-    public required int ExpiryMonth { get; set; }
+    public int ExpiryMonth { get; set; }
     
     [JsonPropertyName("expiry_year")]
     public int ExpiryYear { get; set; }
@@ -20,5 +20,5 @@ public class PostPaymentRequest
     public int Amount { get; set; }
     
     [JsonPropertyName("cvv")]
-    public string Cvv { get; set; }
+    public required string Cvv { get; set; }
 }
