@@ -23,7 +23,8 @@ public class PostPaymentRequestValidator : AbstractValidator<PostPaymentRequest>
 
         RuleFor(r => new { r.ExpiryMonth, r.ExpiryYear })
             .Must(expiry => !IsExpired(expiry.ExpiryMonth, expiry.ExpiryYear))
-            .WithMessage("Card cannot be expired");
+            .WithMessage("Card cannot be expired")
+            .WithName("Card");
         
         RuleFor(r => r.Currency)
             .NotEmpty().WithMessage("Currency cannot be empty")
